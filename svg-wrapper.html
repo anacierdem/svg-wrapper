@@ -1,0 +1,121 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="svg-wrapper">
+  <template>
+    <canvas id="canvas" style="display:none;">
+    </canvas>
+
+    <style>
+      :host {
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+  </template>
+
+  <script>
+    class SvgWrapper extends Polymer.Element {
+      static get is() { return 'svg-wrapper'; }
+
+      static get properties() {
+        return {
+          svgData: {
+            type: String,
+            value: "",
+            observer: "_dataChanged"
+          },
+          svgElement: {
+            type: HTMLElement
+          },
+          preRender: {
+            type: Boolean
+          },
+          finalSvgData: {
+            type: String
+          }
+        }
+      }
+
+      ready() {
+        super.ready();
+
+        // Read the SVG data if it is a child element
+        // o/w the observer will get triggered when the data is updated
+        if (this.firstElementChild) {
+          this.svgData = this.firstElementChild.outerHTML;
+        }
+      }
+
+      drawOnCanvas() {
+        // Get the size. This requires that the element is
+        // visible, so try until successful
+        this.canvas.width = this.svgElement.clientWidth;
+        this.canvas.height = this.svgElement.clientHeight;
+        if (this.canvas.width == 0 || this.canvas.height == 0) {
+          Polymer.RenderStatus.beforeNextRender(this, this.drawOnCanvas);
+          return;
+        }
+
+        var DOMURL = window.URL || window.webkitURL || window;
+        var ctx = this.canvas.getContext('2d');
+
+        // Draw if already loaded
+        if (this.imageLoaded) {
+          ctx.drawImage(this.img, 0, 0);
+          DOMURL.revokeObjectURL(this.url);
+        } else {
+          // Update the load handler
+          this.img.onload = function() {
+            ctx.drawImage(this.img, 0, 0);
+            DOMURL.revokeObjectURL(this.url);
+          }.bind(this);
+        }
+
+        // Remove the SVG element from DOM, we don't need it anymore
+        this.shadowRoot.removeChild(this.svgElement);
+        delete this.svgElement;
+      }
+
+      _dataChanged(newData) {
+        if (newData.trim()) {
+          // Replace style tag
+          this.finalSvgData = newData.replace(/svg-style>/gmi, 'style>')
+
+          // Parse the SVG
+          var holder = document.createElement("div");
+          holder.innerHTML = this.finalSvgData;
+          this.svgElement = holder.firstElementChild;
+
+          if (this.preRender) {
+            this.canvas = this.shadowRoot.getElementById('canvas');
+            this.canvas.style.display = '';
+
+            // Convert into an image element through createObjectURL
+            var DOMURL = window.URL || window.webkitURL || window;
+            var blob = new Blob([this.finalSvgData], {type: 'image/svg+xml'});
+            this.url = DOMURL.createObjectURL(blob);
+
+            this.img = new Image();
+            this.img.onload = () => {
+              this.imageLoaded = true;
+            };
+
+            this.img.onerror = () => {
+              console.error('Cannot render SVG');
+            };
+            this.img.src = this.url;
+
+            // Try to draw
+            Polymer.RenderStatus.beforeNextRender(this, this.drawOnCanvas);
+          }
+
+          delete this.finalSvgData;
+
+          // Move the SVG to shadow DOM to get its size or use as is
+          this.shadowRoot.appendChild(this.svgElement);
+        }
+      }
+    };
+    customElements.define(SvgWrapper.is, SvgWrapper);
+  </script>
+</dom-module>
