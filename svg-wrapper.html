@@ -52,7 +52,7 @@
         this.canvas.width = this.svgElement.clientWidth;
         this.canvas.height = this.svgElement.clientHeight;
         if (this.canvas.width == 0 || this.canvas.height == 0) {
-          Polymer.RenderStatus.beforeNextRender(this, this.drawOnCanvas);
+          Polymer.RenderStatus.afterNextRender(this, this.drawOnCanvas);
           return;
         }
 
@@ -106,7 +106,7 @@
             this.img.src = this.url;
 
             // Try to draw
-            Polymer.RenderStatus.beforeNextRender(this, this.drawOnCanvas);
+            Polymer.RenderStatus.afterNextRender(this, this.drawOnCanvas);
           }
 
           delete this.finalSvgData;
