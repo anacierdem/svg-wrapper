@@ -2,7 +2,7 @@
 
 <dom-module id="svg-wrapper">
   <template>
-    <canvas id="canvas" style="display:none;">
+    <canvas id="canvas" style="display:none; transform-origin: top left;">
     </canvas>
 
     <style>
@@ -49,24 +49,28 @@
       drawOnCanvas() {
         // Get the size. This requires that the element is
         // visible, so try until successful
-        this.canvas.width = this.svgElement.clientWidth;
-        this.canvas.height = this.svgElement.clientHeight;
+        this.canvas.width = this.svgElement.clientWidth * window.devicePixelRatio;
+        this.canvas.height = this.svgElement.clientHeight * window.devicePixelRatio;
         if (this.canvas.width == 0 || this.canvas.height == 0) {
           Polymer.RenderStatus.afterNextRender(this, this.drawOnCanvas);
           return;
         }
+
+        // this.canvas.style.transform = 'scale(' + (1/window.devicePixelRatio) + ')';
+        this.canvas.style.width = this.svgElement.clientWidth + 'px';
+        this.canvas.style.height = this.svgElement.clientHeight + 'px';
 
         var DOMURL = window.URL || window.webkitURL || window;
         var ctx = this.canvas.getContext('2d');
 
         // Draw if already loaded
         if (this.imageLoaded) {
-          ctx.drawImage(this.img, 0, 0);
+          ctx.drawImage(this.img, 0, 0, this.canvas.width, this.canvas.height);
           DOMURL.revokeObjectURL(this.url);
         } else {
           // Update the load handler
           this.img.onload = function() {
-            ctx.drawImage(this.img, 0, 0);
+            ctx.drawImage(this.img, 0, 0, this.canvas.width, this.canvas.height);
             DOMURL.revokeObjectURL(this.url);
           }.bind(this);
         }
