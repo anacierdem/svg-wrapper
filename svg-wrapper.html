@@ -91,6 +91,9 @@
           this.svgElement = holder.firstElementChild;
 
           if (this.preRender) {
+            this.svgElement.style.position = "absolute";
+            this.svgElement.style.opacity = "0";
+
             this.canvas = this.shadowRoot.getElementById('canvas');
             this.canvas.style.display = '';
 
