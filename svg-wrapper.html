@@ -56,7 +56,6 @@
           return;
         }
 
-        // this.canvas.style.transform = 'scale(' + (1/window.devicePixelRatio) + ')';
         this.canvas.style.width = this.svgElement.clientWidth + 'px';
         this.canvas.style.height = this.svgElement.clientHeight + 'px';
 
@@ -94,6 +93,7 @@
             this.svgElement.style.position = "absolute";
             this.svgElement.style.opacity = "0";
 
+            this.imageLoaded = false;
             this.canvas = this.shadowRoot.getElementById('canvas');
             this.canvas.style.display = '';
 
