@@ -32,6 +32,9 @@
           },
           finalSvgData: {
             type: String
+          },
+          reference: {
+            type: String
           }
         }
       }
@@ -39,14 +42,22 @@
       ready() {
         super.ready();
 
-        // Read the SVG data if it is a child element
-        // o/w the observer will get triggered when the data is updated
-        if (this.firstElementChild) {
-          this.svgData = this.firstElementChild.outerHTML;
+        if (!this.drawFromCache()) {
+          // Read the SVG data if it is a child element
+          // o/w the observer will get triggered when the data is updated
+          if (this.firstElementChild) {
+            this.svgData = this.firstElementChild.outerHTML;
+          }
         }
       }
 
       drawOnCanvas() {
+        // Put initial data for reference
+        if (this.reference) {
+          SvgWrapper.cahcedData[this.reference] = SvgWrapper.cahcedData[this.reference] || {};
+          SvgWrapper.cahcedDataObservers[this.reference] = SvgWrapper.cahcedDataObservers[this.reference] || [];
+        }
+
         // Get the size. This requires that the element is
         // visible, so try until successful
         this.$.canvas.width = this.svgElement.clientWidth * window.devicePixelRatio;
@@ -62,15 +73,41 @@
         var DOMURL = window.URL || window.webkitURL || window;
         var ctx = this.$.canvas.getContext('2d');
 
-        // Draw if already loaded
-        if (this.imageLoaded) {
+        var draw = function() {
           ctx.drawImage(this.img, 0, 0, this.$.canvas.width, this.$.canvas.height);
           DOMURL.revokeObjectURL(this.url);
+
+          // Keep canvas data for later access
+          if (this.reference) {
+            SvgWrapper.cahcedData[this.reference] = {
+              width: this.$.canvas.width,
+              height: this.$.canvas.height,
+              styleWidth: this.$.canvas.style.width,
+              styleHeight: this.$.canvas.style.height,
+              data: ctx.getImageData(0, 0, this.$.canvas.width, this.$.canvas.height)
+            };
+
+            var callbacks = SvgWrapper.cahcedDataObservers[this.reference];
+
+            // Inform listeners
+            for (var i = callbacks.length-1; i >= 0; i--) {
+              var callback = callbacks[i];
+              if (typeof callback === 'function') {
+                callback();
+              }
+              callbacks.splice(i, 1);
+            }
+
+          }
+        }.bind(this);
+
+        // Draw if already loaded
+        if (this.imageLoaded) {
+          draw();
         } else {
           // Update the load handler
           this.img.onload = function() {
-            ctx.drawImage(this.img, 0, 0, this.$.canvas.width, this.$.canvas.height);
-            DOMURL.revokeObjectURL(this.url);
+            draw();
           }.bind(this);
         }
 
@@ -78,7 +115,42 @@
         this.svgElement.style.display = 'none';
       }
 
+      drawFromCache() {
+        if (this.reference) {
+          // Will load or have data - wait or copy
+          if (SvgWrapper.cahcedData.hasOwnProperty(this.reference)) {
+            var copyData = function() {
+              var data = SvgWrapper.cahcedData[this.reference];
+
+              this.$.canvas.style.display = '';
+              this.$.canvas.width = data.width ;
+              this.$.canvas.height = data.height;
+
+              this.$.canvas.style.width = data.styleWidth;
+              this.$.canvas.style.height = data.styleHeight;
+              var ctx = this.$.canvas.getContext('2d');
+              ctx.putImageData(data.data, 0, 0);
+              
+            }.bind(this);
+
+            // Already have data - copy
+            if (SvgWrapper.cahcedData[this.reference].hasOwnProperty('data')) {
+              copyData();
+            } else { // wait for data
+              SvgWrapper.cahcedDataObservers[this.reference].push(copyData)
+            }
+
+            return true;
+          }
+        }
+        return false;
+      }
+
       _dataChanged(newData) {
+        if (this.drawFromCache()) {
+          return;
+        }
+
         if (newData.trim()) {
           // Replace style tag
           var finalSvgData = newData.replace(/svg-style>/gmi, 'style>')
@@ -115,7 +187,7 @@
             this.img.src = this.url;
 
             // Try to draw
-            Polymer.RenderStatus.afterNextRender(this, this.drawOnCanvas);
+            this.drawOnCanvas();
           }
         } else {
           // No data, hide both
@@ -126,6 +198,8 @@
         }
       }
     };
+    SvgWrapper.cahcedData = {};
+    SvgWrapper.cahcedDataObservers = {};
     customElements.define(SvgWrapper.is, SvgWrapper);
   </script>
 </dom-module>

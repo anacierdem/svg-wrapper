@@ -6,6 +6,8 @@ bind to this property but the textContent inside the element is not bindable.
 
 Setting pre-render property will draw the SVG onto a canvas to prevent any further SVG draw operations to improve performance.
 
+If you provide a unique reference property, consequent wrappers with same reference will display the same image with same size, without re-drawing anything.
+
 ## Installation
 
 bower install svg-wrapper
@@ -20,6 +22,17 @@ bower install svg-wrapper
     <svg-wrapper
         pre-render="true"
         svg-data='<svg width="100%"><defs><style>[You can use regular style tag with svg-data]</style> ... </svg>'>
+    </svg-wrapper>
+
+    <svg-wrapper
+        pre-render="true"
+        reference="myUniqueId"
+        svg-data='<svg width="100%"><defs><style>[You can use regular style tag with svg-data]</style> ... </svg>'>
+    </svg-wrapper>
+
+    <!-- This won't need data, will display the above image -->
+    <svg-wrapper
+        reference="myUniqueId"
     </svg-wrapper>
 
     <svg-wrapper
