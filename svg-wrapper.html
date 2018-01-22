@@ -60,15 +60,18 @@
 
         // Get the size. This requires that the element is
         // visible, so try until successful
-        this.$.canvas.width = this.svgElement.clientWidth * window.devicePixelRatio;
-        this.$.canvas.height = this.svgElement.clientHeight * window.devicePixelRatio;
+        // TODO: get an optional event from the user to notify, it is visible
+        var w = this.svgElement.clientWidth;
+        var h = this.svgElement.clientHeight;
+        this.$.canvas.width = w * window.devicePixelRatio;
+        this.$.canvas.height = h * window.devicePixelRatio;
         if (this.$.canvas.width == 0 || this.$.canvas.height == 0) {
           Polymer.RenderStatus.afterNextRender(this, this.drawOnCanvas);
           return;
         }
 
-        this.$.canvas.style.width = this.svgElement.clientWidth + 'px';
-        this.$.canvas.style.height = this.svgElement.clientHeight + 'px';
+        this.$.canvas.style.width = w + 'px';
+        this.$.canvas.style.height = h + 'px';
 
         var DOMURL = window.URL || window.webkitURL || window;
         var ctx = this.$.canvas.getContext('2d');
@@ -166,7 +169,7 @@
           this.svgElement.style.display = '';
 
           if (this.preRender) {
-            this.svgElement.style.opacity = '0';
+            this.svgElement.style.opacity = '1';
 
             this.imageLoaded = false;
             this.$.canvas.style.display = '';
