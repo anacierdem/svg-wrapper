@@ -159,9 +159,14 @@
           var finalSvgData = newData.replace(/svg-style>/gmi, 'style>')
 
           // Parse the SVG
-          var holder = document.createElement("div");
+          var holder = document.createElement('div');
           holder.innerHTML = finalSvgData;
           this.svgElement = holder.firstElementChild;
+
+          if (this.svgElement.nodeName.toLowerCase() != 'svg') {
+            console.error('Is not an SVG');
+            return;
+          }
 
           // Move the SVG to shadow DOM to get its size or use as is
           this.shadowRoot.appendChild(this.svgElement);
