@@ -41,13 +41,20 @@
 
       ready() {
         super.ready();
+        // Read the SVG data if it is a child element
+        // o/w the observer will get triggered when the data is updated
+        if (this.firstElementChild) {
+          this.svgData = this.firstElementChild.outerHTML;
+        }
+      }
 
-        if (!this.drawFromCache()) {
-          // Read the SVG data if it is a child element
-          // o/w the observer will get triggered when the data is updated
-          if (this.firstElementChild) {
-            this.svgData = this.firstElementChild.outerHTML;
-          }
+      connectedCallback() {
+        super.connectedCallback();
+        if (this.shouldFireRenderStart) {
+          this.dispatchEvent(new CustomEvent('renderStart', {
+            bubbles: true, composed: true
+          }));
+          this.shouldFireRenderStart = false;
         }
       }
 
@@ -100,10 +107,11 @@
               }
               callbacks.splice(i, 1);
             }
-          }
 
-          var event = new CustomEvent('renderComplete', {bubbles: true, composed: true});
-          this.dispatchEvent(event);
+            this.dispatchEvent(new CustomEvent('renderComplete', {
+              bubbles: true, composed: true
+            }));
+          }
         }.bind(this);
 
         // Draw if already loaded
@@ -124,6 +132,10 @@
         if (this.reference) {
           // Will load or have data - wait or copy
           if (SvgWrapper.cahcedData.hasOwnProperty(this.reference)) {
+            // Already have a listener, just wait
+            if (this.waitingCache) {
+              return true;
+            }
             var copyData = function() {
               var data = SvgWrapper.cahcedData[this.reference];
 
@@ -135,18 +147,19 @@
               this.$.canvas.style.height = data.styleHeight;
               var ctx = this.$.canvas.getContext('2d');
               ctx.putImageData(data.data, 0, 0);
-              
+
+              this.dispatchEvent(new CustomEvent('renderComplete', {
+                bubbles: true, composed: true
+              }));
             }.bind(this);
 
             // Already have data - copy
             if (SvgWrapper.cahcedData[this.reference].hasOwnProperty('data')) {
               copyData();
             } else { // wait for data
+              this.waitingCache = true;
               SvgWrapper.cahcedDataObservers[this.reference].push(copyData)
             }
-
-            var event = new CustomEvent('renderComplete', {bubbles: true, composed: true});
-            this.dispatchEvent(event);
             return true;
           }
         }
@@ -154,11 +167,21 @@
       }
 
       _dataChanged(newData) {
+        if (this.isConnected) {
+          this.dispatchEvent(new CustomEvent('renderStart', {
+            bubbles: true, composed: true
+          }));
+        } else {
+          this.shouldFireRenderStart = true;
+        }
+
+        var haveData = !!newData.trim();
+
         if (this.drawFromCache()) {
           return;
         }
 
-        if (newData.trim()) {
+        if (haveData) {
           // Replace style tag
           var finalSvgData = newData.replace(/svg-style>/gmi, 'style>')
 
@@ -207,6 +230,9 @@
           if (this.svgElement) {
             this.svgElement.style.display = 'none';
           }
+          this.dispatchEvent(new CustomEvent('renderComplete', {
+            bubbles: true, composed: true
+          }));
         }
       }
     };

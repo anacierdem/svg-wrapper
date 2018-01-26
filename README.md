@@ -4,11 +4,16 @@ You can wrap your SVGs if it contains style tags just by replacing them with svg
 Alternatively provide the svg-data property as a string with actual SVG data. You can also
 bind to this property but the textContent inside the element is not bindable.
 
-Setting pre-render property will draw the SVG onto a canvas to prevent any further SVG draw operations to improve performance.
+Setting `pre-render` property will draw the SVG onto a canvas to prevent any further SVG draw operations to improve performance.
 
 If you provide a unique reference property, consequent wrappers with same reference will display the same image with same size, without re-drawing anything.
 
-The element will trigger renderCompleted when the SVG is successfully drawn.
+When using `pre-render`;
+
+The element will trigger `renderCompleted` when the SVG is successfully drawn.
+The element will trigger `renderStart` when the SVG has started drawing.
+
+These two events are expected to trigger with equal amounts if no errors occur, so you can keep track of waiting and rendered SVGs.
 
 ## Installation
 
