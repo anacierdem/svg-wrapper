@@ -152,23 +152,27 @@
               return true;
             }
             var copyData = function() {
-              var data = SvgWrapper.cahcedData[this.reference];
+              // Render asynchronously to make it possible to accumulate
+              // all synchronous renderStart listeners
+              Polymer.RenderStatus.afterNextRender(this, function() {
+                var data = SvgWrapper.cahcedData[this.reference];
 
-              this.$.canvas.style.display = '';
-              this.$.canvas.width = data.width ;
-              this.$.canvas.height = data.height;
+                this.$.canvas.style.display = '';
+                this.$.canvas.width = data.width ;
+                this.$.canvas.height = data.height;
 
-              this.$.canvas.style.width = data.styleWidth;
-              this.$.canvas.style.height = data.styleHeight;
-              var ctx = this.$.canvas.getContext('2d');
-              ctx.putImageData(data.data, 0, 0);
+                this.$.canvas.style.width = data.styleWidth;
+                this.$.canvas.style.height = data.styleHeight;
+                var ctx = this.$.canvas.getContext('2d');
+                ctx.putImageData(data.data, 0, 0);
 
-              this.waitingCache = false;
-              if (this.isConnected) {
-                this.dispatchRenderCompleted();
-              } else {
-                this.shouldFireRenderComplete = true;
-              }
+                this.waitingCache = false;
+                if (this.isConnected) {
+                  this.dispatchRenderCompleted();
+                } else {
+                  this.shouldFireRenderComplete = true;
+                }
+              });
             }.bind(this);
 
             // Already have data - copy
@@ -185,7 +189,6 @@
       }
 
       _dataChanged(newData) {
-
         var haveData = !!newData.trim();
 
         if(haveData) {
