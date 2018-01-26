@@ -48,13 +48,27 @@
         }
       }
 
+      dispatchRenderStart() {
+        this.dispatchEvent(new CustomEvent('renderStart', {
+          bubbles: true, composed: true
+        }));
+      }
+
+      dispatchRenderCompleted() {
+        this.dispatchEvent(new CustomEvent('renderComplete', {
+          bubbles: true, composed: true
+        }));
+      }
+
       connectedCallback() {
         super.connectedCallback();
         if (this.shouldFireRenderStart) {
-          this.dispatchEvent(new CustomEvent('renderStart', {
-            bubbles: true, composed: true
-          }));
+          this.dispatchRenderStart();
           this.shouldFireRenderStart = false;
+        }
+        if (this.shouldFireRenderComplete) {
+          this.dispatchRenderCompleted();
+          this.shouldFireRenderComplete = false;
         }
       }
 
@@ -107,10 +121,11 @@
               }
               callbacks.splice(i, 1);
             }
-
-            this.dispatchEvent(new CustomEvent('renderComplete', {
-              bubbles: true, composed: true
-            }));
+          }
+          if (this.isConnected) {
+            this.dispatchRenderCompleted();
+          } else {
+            this.shouldFireRenderComplete = true;
           }
         }.bind(this);
 
@@ -148,9 +163,12 @@
               var ctx = this.$.canvas.getContext('2d');
               ctx.putImageData(data.data, 0, 0);
 
-              this.dispatchEvent(new CustomEvent('renderComplete', {
-                bubbles: true, composed: true
-              }));
+              this.waitingCache = false;
+              if (this.isConnected) {
+                this.dispatchRenderCompleted();
+              } else {
+                this.shouldFireRenderComplete = true;
+              }
             }.bind(this);
 
             // Already have data - copy
@@ -167,15 +185,16 @@
       }
 
       _dataChanged(newData) {
-        if (this.isConnected) {
-          this.dispatchEvent(new CustomEvent('renderStart', {
-            bubbles: true, composed: true
-          }));
-        } else {
-          this.shouldFireRenderStart = true;
-        }
 
         var haveData = !!newData.trim();
+
+        if(haveData) {
+          if (this.isConnected) {
+            this.dispatchRenderStart();
+          } else {
+            this.shouldFireRenderStart = true;
+          }
+        }
 
         if (this.drawFromCache()) {
           return;
@@ -230,9 +249,7 @@
           if (this.svgElement) {
             this.svgElement.style.display = 'none';
           }
-          this.dispatchEvent(new CustomEvent('renderComplete', {
-            bubbles: true, composed: true
-          }));
+          this.waitingCache = false;
         }
       }
     };
