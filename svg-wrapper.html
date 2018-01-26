@@ -100,8 +100,10 @@
               }
               callbacks.splice(i, 1);
             }
-
           }
+
+          var event = new CustomEvent('renderComplete', {bubbles: true, composed: true});
+          this.dispatchEvent(event);
         }.bind(this);
 
         // Draw if already loaded
@@ -143,6 +145,8 @@
               SvgWrapper.cahcedDataObservers[this.reference].push(copyData)
             }
 
+            var event = new CustomEvent('renderComplete', {bubbles: true, composed: true});
+            this.dispatchEvent(event);
             return true;
           }
         }

@@ -8,6 +8,8 @@ Setting pre-render property will draw the SVG onto a canvas to prevent any furth
 
 If you provide a unique reference property, consequent wrappers with same reference will display the same image with same size, without re-drawing anything.
 
+The element will trigger renderCompleted when the SVG is successfully drawn.
+
 ## Installation
 
 bower install svg-wrapper
