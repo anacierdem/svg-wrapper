@@ -175,11 +175,11 @@
               });
             }.bind(this);
 
+            this.waitingCache = true;
             // Already have data - copy
             if (SvgWrapper.cahcedData[this.reference].hasOwnProperty('data')) {
               copyData();
             } else { // wait for data
-              this.waitingCache = true;
               SvgWrapper.cahcedDataObservers[this.reference].push(copyData)
             }
             return true;
