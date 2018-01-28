@@ -191,7 +191,8 @@
       _dataChanged(newData) {
         var haveData = !!newData.trim();
 
-        if(haveData) {
+        var fromCache = this.drawFromCache();
+        if(haveData || fromCache) {
           if (this.isConnected) {
             this.dispatchRenderStart();
           } else {
@@ -199,7 +200,7 @@
           }
         }
 
-        if (this.drawFromCache()) {
+        if (fromCache) {
           return;
         }
 
