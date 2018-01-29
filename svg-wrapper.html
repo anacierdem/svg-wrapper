@@ -49,12 +49,14 @@
       }
 
       dispatchRenderStart() {
+        this.shouldFireRenderStart = false;
         this.dispatchEvent(new CustomEvent('renderStart', {
           bubbles: true, composed: true
         }));
       }
 
       dispatchRenderCompleted() {
+        this.shouldFireRenderComplete = false;
         this.dispatchEvent(new CustomEvent('renderComplete', {
           bubbles: true, composed: true
         }));
