@@ -207,6 +207,9 @@
         }
 
         if (haveData) {
+          if(this.svgElement)
+            this.shadowRoot.removeChild(this.svgElement);
+
           // Replace style tag
           var finalSvgData = newData.replace(/svg-style>/gmi, 'style>')
 
