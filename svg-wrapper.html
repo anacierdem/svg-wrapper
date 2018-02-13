@@ -124,6 +124,10 @@
               callbacks.splice(i, 1);
             }
           }
+
+          // Hide SVG
+          this.svgElement.style.display = 'none';
+
           if (this.isConnected) {
             this.dispatchRenderCompleted();
           } else {
@@ -140,9 +144,6 @@
             draw();
           }.bind(this);
         }
-
-        // Hide SVG
-        this.svgElement.style.display = 'none';
       }
 
       drawFromCache() {
