@@ -208,7 +208,7 @@
         }
 
         if (haveData) {
-          if(this.svgElement)
+          if (this.svgElement)
             this.shadowRoot.removeChild(this.svgElement);
 
           // Replace style tag
@@ -219,7 +219,7 @@
           holder.innerHTML = finalSvgData;
           this.svgElement = holder.firstElementChild;
 
-          if (this.svgElement.nodeName.toLowerCase() != 'svg') {
+          if (this.svgElement && this.svgElement.nodeName.toLowerCase() != 'svg') {
             console.error('Is not an SVG');
             return;
           }
